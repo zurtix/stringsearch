@@ -17,8 +17,10 @@ SearchArgs ArgsHelper::get_args(int argc, char** argv)
 		store(parse_command_line(argc, argv, desc), vm);
 		notify(vm);
 
-		if (vm.count("help"))
+		if (vm.count("help")) {
 			std::cout << desc << std::endl;
+			exit(EXIT_SUCCESS);
+		}
 		if (vm.count("path"))
 			m_args.spath = vm["path"].as<std::string>();
 		if (vm.count("search"))
