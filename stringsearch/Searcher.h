@@ -20,7 +20,7 @@ private:
 	bool done;
 	std::vector<std::thread> threads;
 	std::condition_variable_any workQueueCond;
-	std::mutex workQueueMutex;
+	std::mutex workQueueMutex, printMutex;
 	std::queue<std::pair<int, std::string>> workQueue;
 	std::string m_sstring, m_root;
 	bool m_recurse;
@@ -32,6 +32,7 @@ private:
 	void doWork();
 	void scan_dir(std::string const&, bool r);
 	void scan_file(std::string const&);
+	void safe_display(std::string const&);
 public:
 	~Searcher();
 };

@@ -68,10 +68,15 @@ void Searcher::scan_file(std::string const& p) {
 		while (!fi.eof())
 			while (getline(fi, line)) {
 				if (line.find(this->m_sstring) != std::string::npos)
-					std::cout << p << " : " << cur << std::endl;
+					safe_display(p + " : " + std::to_string(cur));
 				++cur;
 			}
 	fi.close();
+}
+
+void Searcher::safe_display(std::string const& txt) {
+	std::lock_guard<std::mutex> g(printMutex);
+	std::cout << txt << std::endl;
 }
 
 void Searcher::scan_dir(std::string const& p, bool r) {
