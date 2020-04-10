@@ -8,17 +8,24 @@ Searcher::Searcher(std::string const& s, std::string const& p, bool const& r)
 
 	for (unsigned i = 0; i < numT; ++i)
 		threads.push_back(std::thread(&Searcher::doWork, this));
-
-	if (fs::is_directory(p))
-		scan_dir(p, r);
-	else if (fs::is_regular_file(p))
-		scan_file(p);
 }
 
 void Searcher::addWork(int id, std::string const& w) {
-	std::lock_guard<std::mutex> g(workQueueMutex);
-	workQueue.push(std::pair<int, std::string>(id, w));
+	{
+		std::lock_guard<std::mutex> g(workQueueMutex);
+		workQueue.push(std::pair<int, std::string>(id, w));
+	}
+
 	workQueueCond.notify_one();
+}
+
+void Searcher::start() {
+	if (fs::is_directory(m_root))
+		scan_dir(m_root, m_recurse);
+	else if (fs::is_regular_file(m_root))
+		scan_file(m_root);
+
+	doWork();
 }
 
 void Searcher::doWork() {
@@ -27,7 +34,7 @@ void Searcher::doWork() {
 
 		{
 			std::unique_lock<std::mutex> g(workQueueMutex);
-			workQueueCond.wait(g, [&] {
+			workQueueCond.wait(g, [&]{
 				return !workQueue.empty() || done;
 				});
 
@@ -35,10 +42,13 @@ void Searcher::doWork() {
 			workQueue.pop();
 		}
 
+		if (workQueue.empty())
+			done = true;
+
 		try {
 			if (fs::is_directory(req.second))
 				scan_dir(req.second, this->m_recurse);
-			else if (fs::is_regular_file(req.second))
+			else
 				scan_file(req.second);
 		}
 		catch (const std::exception& ex) {
@@ -61,6 +71,7 @@ void Searcher::scan_file(std::string const& p) {
 					std::cout << p << " : " << cur << std::endl;
 				++cur;
 			}
+	fi.close();
 }
 
 void Searcher::scan_dir(std::string const& p, bool r) {
@@ -73,6 +84,6 @@ Searcher::~Searcher() {
 	done = true;
 
 	for (auto& t : threads)
-		if (t.joinable())
+		if(t.joinable())
 			t.join();
 }

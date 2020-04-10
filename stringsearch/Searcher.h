@@ -27,8 +27,9 @@ private:
 public:
 	Searcher(std::string const&, std::string const&, bool const&);
 	void addWork(int, std::string const&);
-	void doWork();
+	void start();
 private:
+	void doWork();
 	void scan_dir(std::string const&, bool r);
 	void scan_file(std::string const&);
 public:

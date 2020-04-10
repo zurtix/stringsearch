@@ -13,7 +13,7 @@ void StringSearch::execute() {
 	std::cout << " In Directory: " << this->m_args.spath;
 	std::cout << std::endl;
 
-	Searcher s(m_args.sstring, m_args.spath, m_args.recurse);
-	s.doWork();
+	Searcher* s = new Searcher(m_args.sstring, m_args.spath, m_args.recurse);
+	s->start();
 }
  
